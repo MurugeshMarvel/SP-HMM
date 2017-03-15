@@ -1,0 +1,7 @@
+Speech Recognition - using Multiple method for multiple Scenarios
+
+Abstract : 
+  There are many principle methods for speech recognition process. Startign for filtering to the classifying model, there are 
+  several ways to make it done. In this Project I am implementing a generalised platfom that include several methods in filtering, 
+  generalising, Feature vector converting, reducing and language Learning model. Each way has its own advantages and drawback. So 
+  this generic platform will adopt on the best optimised accuraccy with difference techniques
