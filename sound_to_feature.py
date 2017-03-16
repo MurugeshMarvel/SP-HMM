@@ -50,3 +50,21 @@ def process(folder,debug=False,htk_mfcc=False,forcemfcext=False,stereo_wave=Fals
 
             except ImportError:
                 print >> sys.stderr, 'you need spectral (in the parent folder)'
+
+        for bdir, _ , files in  os.walk(folder):
+            for fname in files:
+                if fname[-4:] != '.WAV':
+                    continue
+                rawfname= bdir + '/' + fname[:4]+'.rawaudio'
+                wavfname = bdir + '/'+ fname[:4]
+                tempfname = bdir + '/' + fname[:4] + '_temp.wav'
+                mfccfname = bdir + '/' + fname[:-4] + mfc_extension
+                if sox:
+                    shutil.move(wavfname, tempfname)
+                    call(['sox',tempfname,wavfname])
+                    shutil.move(tempfname,wavfname)
+
+                if htk_mfcc:
+                    call(['HCopy','-C','wav_config',wavfname,mfccfname])
+                    srate, sound = wavfile.read(wavfname)
+                    
