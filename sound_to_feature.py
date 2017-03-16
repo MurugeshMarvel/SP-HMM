@@ -34,37 +34,55 @@ def process(folder,debug=False,htk_mfcc=False,forcemfcext=False,stereo_wave=Fals
 
             sys.exit(-1)
 
-        if spectograms:
-            try:
-                from pylab import specgram
+    if spectograms:
+        try:
+            from pylab import specgram
 
-            except ImportError:
-                print >> sys.stderr,'You need Pylab'
-                sys.exit(-1)
+        except ImportError:
+            print >> sys.stderr,'You need Pylab'
+            sys.exit(-1)
 
-        fbanks = None
-        if filterbanks:
-            try:
-                sys.path.append('../spectral')
-                from spectral import Spectral
+    fbanks = None
+    if filterbanks:
+        try:
+            sys.path.append('../spectral')
+            from spectral import Spectral
 
-            except ImportError:
-                print >> sys.stderr, 'you need spectral (in the parent folder)'
+        except ImportError:
+            print >> sys.stderr, 'you need spectral (in the parent folder)'
 
-        for bdir, _ , files in  os.walk(folder):
-            for fname in files:
-                if fname[-4:] != '.WAV':
-                    continue
-                rawfname= bdir + '/' + fname[:4]+'.rawaudio'
-                wavfname = bdir + '/'+ fname[:4]
-                tempfname = bdir + '/' + fname[:4] + '_temp.wav'
-                mfccfname = bdir + '/' + fname[:-4] + mfc_extension
-                if sox:
-                    shutil.move(wavfname, tempfname)
-                    call(['sox',tempfname,wavfname])
-                    shutil.move(tempfname,wavfname)
+    for bdir, _ , files in  os.walk(folder):
+        for fname in files:
+            if fname[-4:] != '.WAV':
+                continue
+            rawfname= bdir + '/' + fname[:-4]+'.rawaudio'
+            wavfname = bdir + '/'+ fname
+            tempfname = bdir + '/' + fname[:-4] + '_temp.wav'
+            mfccfname = bdir + '/' + fname[:-4] + mfc_extension
+            if sox:
+                shutil.move(wavfname, tempfname)
+                call(['sox',tempfname,wavfname])
+                shutil.move(tempfname,wavfname)
 
-                if htk_mfcc:
-                    call(['HCopy','-C','wav_config',wavfname,mfccfname])
-                    srate, sound = wavfile.read(wavfname)
-                    
+            if htk_mfcc:
+                call(['HCopy','-C','wav_config',wavfname,mfccfname])
+                srate, sound = wavfile.read(wavfname)
+            if stereo_wave and len(sound.shape == 2):
+                sound = sound[:,0]+ sound[:,1]
+            if gammatones:
+                gammatonefname = bdir + '/' + fname[:-4] + '_gamma.npy'
+                tmp_snd = loadsound(wavfname)
+                gamma_cf = erbspace(20*Hz, 20*kHz, n_gmammatones_filters)
+                gamma_fb = Gammatone(tmp_snd, gamma_cf)
+                with open(gammatonefname,'w') as o_f:
+                    npsave(o_f, gamma_fb.process())
+
+            if spectograms:
+                powersspec, _,_,_ = specgram(sound, NFFT=int(srate * specgram_window), Fs=srate,noverlap=int(srate*specgram_window))
+                specgramfname = bdir + '/' + fname[:-4]+'_specgram.npy'
+                with open(specgramfname,'w') as o_f:
+                    npsave(o_f , powerspec.T)
+                if filterbanks:
+                    if fbanks ==None:
+                        fbanks = Spectral(nfilt = n_fbanks, alpha=0.97,do_dct=False, fs=srate, frate=fbanks_rate, wlen=fbanks_window,nfft=1024,do_deltas=False,do_deltasdeltas=False)
+                    fbank = fbanks.transform()
