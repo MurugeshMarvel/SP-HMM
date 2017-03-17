@@ -2,3 +2,4 @@ Dataset/
 bin/
 models/
 mfcc.py
+sample_data
