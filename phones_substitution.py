@@ -4,6 +4,12 @@ import sys
 import signal
 import json
 
+def signal_handler(signal, frame):
+    print frame
+    print 'Careful about your last file, it may have been moved to ${name}~' 
+    # TODO
+    sys.exit(-1)
+
 
 def process(folder, sentences=False, foldings = {},startend_sil=False):
 	c_before = {}
@@ -26,7 +32,7 @@ def process(folder, sentences=False, foldings = {},startend_sil=False):
 				tmpline = tmpline.replace('-','')
 				tmp = tmpline.split()
 				for k, v in foldings.iteritems():
-					if tmp[-1] = = k :
+					if tmp[-1] == k :
 						tmp[-1] = v
 						tmpline = ' '.join(tmp)
 
@@ -62,4 +68,25 @@ def process(folder, sentences=False, foldings = {},startend_sil=False):
 
 
 if __name__ == '__main__':
-	signal.signal(signal.SIGINT, signal_handler
+	signal.signal(signal.SIGINT, signal_handler)
+	if len(sys.argv)>1:
+		if '--help' in sys.argv:
+			print "Contact MurugeshMarvel for further reference-> muku.vadivel@gmail.com"
+			sys.exit(0)
+		foldername = sys.argv[1]
+		sentences = False
+		foldings= {}
+		startend_sil = False
+		if '--sentences' in sys.argv:
+			sentences =True
+		if '--startendsil' in sys.argv:
+			startend_sil = True
+		for arg in sys.argv:
+			if '.json' in arg[-5:]:
+				with open(arg) as f:
+					foldings = json.load(f)
+				print " Using Foldings:", arg
+		process(foldername, sentences, foldings, startend_sil)
+
+	else:
+		print "Thats it"
