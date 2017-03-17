@@ -50,4 +50,16 @@ def process(folder, sentences=False, foldings = {},startend_sil=False):
 			fw.close()
 			os.remove(fullname + '~')
 			for tmp_phn in phones_before:
-				
+				c_before[tmp_phn] = c_before.get(tmp_phn,0) + 1
+			for tmp_phn in phones_after:
+				c_after[tmp_phn] = c_after.get(tmp_phn,0) + 1
+			print "dealt with ", fullname
+
+	print "Counts before Sustitution", c_before
+	print "Counts after Substitution", c_after
+	with open(folder.rstrip('/') + '/unigrams.pickle','w') as unidump:
+		cPickle.dump(c_after, unidump)
+
+
+if __name__ == '__main__':
+	signal.signal(signal.SIGINT, signal_handler
