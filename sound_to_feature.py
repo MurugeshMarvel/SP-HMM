@@ -1,7 +1,7 @@
 import os
 import shutil
 import sys
-from numpy import call
+from subprocess import call
 from numpy import save as npsave
 import scipy
 from scipy.io import wavfile
@@ -58,7 +58,7 @@ def process(folder,debug=False,htk_mfcc=False,forcemfcext=False,stereo_wave=Fals
             rawfname= bdir + '/' + fname[:-4]+'.rawaudio'
             wavfname = bdir + '/'+ fname
             tempfname = bdir + '/' + fname[:-4] + '_temp.wav'
-            mfccfname = bdir + '/' + fname[:-4] + mfc_extension
+            mfccfname = bdir + '/' + fname[:-4] + '.txt'
             if sox:
                 shutil.move(wavfname, tempfname)
                 call(['sox',tempfname,wavfname])
@@ -66,7 +66,9 @@ def process(folder,debug=False,htk_mfcc=False,forcemfcext=False,stereo_wave=Fals
 
             if htk_mfcc:
                 call(['HCopy','-C','wav_config',wavfname,mfccfname])
-                srate, sound = wavfile.read(wavfname)
+            srate = 16000
+
+            srate, sound = wavfile.read(wavfname)
             if stereo_wave and len(sound.shape == 2):
                 sound = sound[:,0]+ sound[:,1]
             if gammatones:
@@ -82,7 +84,56 @@ def process(folder,debug=False,htk_mfcc=False,forcemfcext=False,stereo_wave=Fals
                 specgramfname = bdir + '/' + fname[:-4]+'_specgram.npy'
                 with open(specgramfname,'w') as o_f:
                     npsave(o_f , powerspec.T)
-                if filterbanks:
-                    if fbanks ==None:
-                        fbanks = Spectral(nfilt = n_fbanks, alpha=0.97,do_dct=False, fs=srate, frate=fbanks_rate, wlen=fbanks_window,nfft=1024,do_deltas=False,do_deltasdeltas=False)
-                    fbank = fbanks.transform()
+            if filterbanks:
+                if fbanks ==None:
+                    fbanks = Spectral(nfilt = n_fbanks, alpha=0.97,do_dct=False, fs=srate, frate=fbanks_rate, wlen=fbanks_window,nfft=1024,do_deltas=False,do_deltasdeltas=False)
+                fbank = fbanks.transform(sound)[0]
+                fbanksfname = bdir + '/' + fname[:-4]+'_fbanks.npy'
+                with open(fbanksfname,'w') as o_f:
+                    npsave(o_f, fbank)
+            print "Dealt with the file ", wavfname
+
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        if '--help' in sys.argv:
+            print "Contact Murugesh marvel for further information on this program -- muku.vadivel@gmail.com"
+            sys.exit()
+
+        printdebug = False
+        doforcemfcext = False
+        dohtk_mfcc = False
+        isstereo = False
+        dogammatones =False
+        dospectograms = False
+        dofilterbanks = False
+        dosox = True
+        if '--debug' in sys.argv:
+            printdebug = True
+        if '--debug' in sys.argv:
+            printdebug = True
+        if '--forcemfcext' in sys.argv:
+            doforcemfcext = True
+        if '--htk-mfcc' in sys.argv:
+            dohtk_mfcc = True
+        if '--stereo' in sys.argv:
+            isstereo = True
+        if '--gammatones' in sys.argv:
+            dogammatones = True
+        if '--spectrograms' in sys.argv:
+            dospectograms = True
+        if '--filterbanks' in sys.argv:
+            dofilterbanks = True
+        if '--no-sox' in sys.argv:
+            dosox = False
+        l = filter(lambda x: not '--' in x[0:2], sys.argv)
+        foldername = '.'
+        if len(l) > 1:
+            foldername = l[1]
+
+        process(foldername, printdebug, dohtk_mfcc, doforcemfcext, isstereo,
+                dogammatones, dospectograms, dofilterbanks, dosox)
+
+    else:
+        process('.')
