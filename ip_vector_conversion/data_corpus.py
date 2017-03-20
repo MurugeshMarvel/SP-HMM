@@ -4,8 +4,20 @@ import glob
 import os
 import string
 import itertools
+import mfcc
 
 class data(object):
+    def __init__(self, batch_size = 16, data_path = '/home/murugesan/VCTK-Corpus/', vocabulary_loading= False):
+        if vocabulary_loading:
+            vocabulary_file = 'muru_works' + self.__class__.__name__ + 'vocabulary.npy'
+            if os.path.exists(vocabulary_file):
+                self.index2byte = np.load(vocabulary_file)
+                
+    def load_mfcc(self, source):
+        lable, wav = source
+        lab = np.fromstring(lable, np.int)
+        mfcc = mfcc.mfcc_generate(wav)
+        return lab, mfcc
     def load_corpus(self,data_path):
         df = pd.read_table(data_path + 'speaker-info.txt', usecols=['ID','AGE','GENDER','ACCENTS'],
                      index_col= False, delim_whitespace=True)
