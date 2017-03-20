@@ -3,3 +3,8 @@ bin/
 models/
 mfcc.py
 sample_data
+ip_vector_conversion/SA1.WAV
+ip_vector_conversion/SA1.wav
+ip_vector_conversion/mfcc_test1.wav
+ip_vector_conversion/sam.wav
+ip_vector_conversion/sound2.wav
