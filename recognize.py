@@ -5,9 +5,6 @@ import librosa
 from data import VCTK
 
 
-__author__ = 'buriburisuri@gmail.com'
-
-
 # set log level to debug
 tf.sg_verbosity(10)
 
