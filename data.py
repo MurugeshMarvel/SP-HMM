@@ -8,7 +8,7 @@ import os
 import string
 import itertools
 import mfcc
-__author__ = 'buriburisuri@gmail.com'
+
 __vocabulary_save_dir__ = "asset/train/"
 
 
